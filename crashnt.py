@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import discord
 from discord.ext import commands
+from discord.utils import get
 import asyncio
 import requests
 import logging
@@ -12,15 +13,15 @@ from uuid import uuid4
 log = logging.getLogger(__name__)
 bot = commands.Bot(command_prefix='~')
 
-whitelist = []
+#whitelist = []
 
 with open("owner.txt", "r") as f:
     owner = int(f.readline())
 with open("token.txt", "r") as f:
     token = f.readline()
-with open("channels.txt", "r") as f:
-    for line in f.read().splitlines():
-        whitelist.append(int(line))
+#with open("channels.txt", "r") as f:
+#    for line in f.read().splitlines():
+#        whitelist.append(int(line))
 
 
 @bot.event
@@ -39,18 +40,17 @@ async def on_message(msg):
             await msg.channel.send("```\n{}```".format(result))
         except:
             await msg.channel.send("```\nError:\n{}```".format(traceback.format_exc().replace("```", "\`\`\`")))
-    if msg.channel.id in whitelist:
-        log.debug("{}: {}".format(msg.author, msg.content))
-        # If someone sends a message in our watched channels, check content first
-        if re.search(r"https?:.*\.mp4", msg.content):
-            urls = re.findall(r"https?:.*\.mp4", msg.content)
-            for url in urls:
-                r = requests.get(url)
-                fname = str(uuid4())
-                with open("tmp/{}.mp4".format(fname), "wb") as f:
-                    f.write(r.content)
-                    if await parse(fname, msg): # If we found a crash vid, skip the rest.
-                        return
+    log.debug("{}: {}".format(msg.author, msg.content))
+    # If someone sends a message, check content first
+    if re.search(r"https?:.*", msg.content):
+        urls = re.findall(r"https?:.*\.mp4", msg.content)
+        for url in urls:
+            r = requests.get(url)
+            fname = str(uuid4())
+            with open("tmp/{}.mp4".format(fname), "wb") as f:
+                f.write(r.content)
+                if await parse(fname, msg): # If we found a crash vid, skip the rest.
+                    return
         # Check embeds too
         if msg.embeds:
             for embed in msg.embeds:
@@ -98,8 +98,18 @@ async def parse(fname, msg):
                         await msg.delete()
                     except:
                         pass
-                    await msg.channel.send(":hammer: Crash gif detected. Kicking user... <@{}>".format(msg.author.id))
-                    await msg.author.kick(reason="Crash gif")
+                    sent_msg = await msg.channel.send("<:WindowsDenied:824380486918078494> <@{}> has been automatically muted: **Sending client-crashing GIF/video**".format(msg.author.id))
+                    mute_role = get(msg.guild.roles, name="Muted")
+                    invest_channel = get(msg.guild.channels, name="investigations")
+                    await msg.author.add_roles(mute_role)
+                    #await msg.author.kick(reason="Crash gif")
+
+                    embed = discord.Embed(colour=discord.Colour(0xfe001a), url="https://discordapp.com", description=msg.content)
+                    embed.set_author(name=f"{msg.author.name} in #{msg.channel.name}", icon_url=msg.author.avatar_url)
+                    embed.set_footer(text=f"User ID: {msg.author.id}")
+                    embed.add_field(name="Message link", value=f"[`Jump to warning`](https://discordapp.com/{sent_msg.guild.id}/{sent_msg.channel.id}/{sent_msg.id})")
+                    
+                    await invest_channel.send(content=f"<:WindowsDenied:824380486918078494> <@{msg.author.id}> sent a crash GIF and was muted in <#{msg.channel.id}>", embed=embed)
                     was_bad = True
                     break
     log.debug("Done analyzing.")
