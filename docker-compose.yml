@@ -1,0 +1,12 @@
+version: "2.3"
+services:
+    bot:
+        image: ghcr.io/erisa/giftok
+        restart: on-failure
+        volumes:
+            - type: bind
+              source: ./owner.txt
+              target: /usr/src/app/owner.txt
+              - type: bind
+              source: ./token.txt
+              target: /usr/src/app/token.txt
