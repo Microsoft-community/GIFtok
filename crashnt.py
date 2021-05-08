@@ -81,7 +81,18 @@ async def parse(fname, msg):
         log.error("ffprobe has crashed with return code {}".format(e.returncode))
         if e.returncode == -9: # If ffprobe runs out of memory, it's likely bad, but just to be safe, we won't kick
             await msg.delete()
-            await msg.channel.send(":hammer: Possible crash gif detected. Notifying <@{}>\nUser: <@{}>".format(owner, msg.author.id))
+            mute_role = get(msg.guild.roles, name="Muted")
+            invest_channel = get(msg.guild.channels, name="investigations")
+            await msg.author.add_roles(mute_role)
+            #await msg.author.kick(reason="Crash gif")
+
+            embed = discord.Embed(colour=discord.Colour(0xfe001a), url="https://discordapp.com", description=msg.content)
+            embed.set_author(name=f"{msg.author.name} in #{msg.channel.name}", icon_url=msg.author.avatar_url)
+            embed.set_footer(text=f"User ID: {msg.author.id}")
+            embed.add_field(name="Message link", value=f"[`Jump to context`](https://discordapp.com/channels/{sent_msg.guild.id}/{sent_msg.channel.id}/{sent_msg.id})")
+            
+            await invest_channel.send(content=f"<:WindowsDenied:824380486918078494> <@{msg.author.id}> sent a **potential** crash GIF and was muted in <#{msg.channel.id}>", embed=embed)
+
             was_bad = True
     else:
         first = True
