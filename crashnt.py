@@ -40,7 +40,7 @@ async def on_message(msg):
             await msg.channel.send("```\n{}```".format(result))
         except:
             await msg.channel.send("```\nError:\n{}```".format(traceback.format_exc().replace("```", "\`\`\`")))
-    log.debug("{}: {}".format(msg.author, msg.content))
+    #log.debug("{}: {}".format(msg.author, msg.content))
     # If someone sends a message, check content first
     if re.search(r"https?:.*", msg.content):
         urls = re.findall(r"https?:.*\.mp4", msg.content)
