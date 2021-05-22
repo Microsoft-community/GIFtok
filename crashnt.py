@@ -51,26 +51,26 @@ async def on_message(msg):
                 f.write(r.content)
                 if await parse(fname, msg): # If we found a crash vid, skip the rest.
                     return
-        # Check embeds too
-        if msg.embeds:
-            for embed in msg.embeds:
-                if hasattr(embed, "video") and embed.video.url:
-                    if embed.video.url.endswith("mp4"):
-                        r = requests.get(embed.video.url)
-                        fname = str(uuid4())
-                        with open("tmp/{}.mp4".format(fname), "wb") as f:
-                            f.write(r.content)
-                            if await parse(fname, msg):
-                                return
-        # Finally, check attachments
-        if msg.attachments:
-            for attachment in msg.attachments:
-                log.debug("Filetype: {}".format(attachment.content_type))
-                if attachment.content_type == "video/mp4":
+    # Check embeds too
+    if msg.embeds:
+        for embed in msg.embeds:
+            if hasattr(embed, "video") and embed.video.url:
+                if embed.video.url.endswith("mp4"):
+                    r = requests.get(embed.video.url)
                     fname = str(uuid4())
-                    await attachment.save("tmp/{}.mp4".format(fname))
-                    if await parse(fname, msg):
-                        return
+                    with open("tmp/{}.mp4".format(fname), "wb") as f:
+                        f.write(r.content)
+                        if await parse(fname, msg):
+                            return
+    # Finally, check attachments
+    if msg.attachments:
+        for attachment in msg.attachments:
+            log.debug("Filetype: {}".format(attachment.content_type))
+            if attachment.content_type == "video/mp4":
+                fname = str(uuid4())
+                await attachment.save("tmp/{}.mp4".format(fname))
+                if await parse(fname, msg):
+                    return
 
 async def parse(fname, msg):
     log.debug("Analyzing '{}' <{}>".format(fname, msg))
