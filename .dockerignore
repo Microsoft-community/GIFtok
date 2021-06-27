@@ -2,3 +2,6 @@ channels.txt
 owner.txt
 token.txt
 tmp/*
+.venv/*
+.vs/*
+.vsocde/*

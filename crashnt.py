@@ -109,7 +109,7 @@ async def parse(fname, msg):
                         await msg.delete()
                     except:
                         pass
-                    sent_msg = await msg.channel.send("<:WindowsDenied:824380486918078494> <@{}> has been automatically muted: **Sending client-crashing GIF/video**".format(msg.author.id))
+                    sent_msg = await msg.channel.send("<:CliptokDenied:843582722940993556> <@{}> has been automatically muted: **Sending client-crashing GIF/video**".format(msg.author.id))
                     mute_role = get(msg.guild.roles, name="Muted")
                     invest_channel = get(msg.guild.channels, name="investigations")
                     await msg.author.add_roles(mute_role)
@@ -119,8 +119,11 @@ async def parse(fname, msg):
                     embed.set_author(name=f"{msg.author.name} in #{msg.channel.name}", icon_url=msg.author.avatar_url)
                     embed.set_footer(text=f"User ID: {msg.author.id}")
                     embed.add_field(name="Message link", value=f"[`Jump to context`](https://discordapp.com/channels/{sent_msg.guild.id}/{sent_msg.channel.id}/{sent_msg.id})")
-                    
-                    await invest_channel.send(content=f"<:WindowsDenied:824380486918078494> <@{msg.author.id}> sent a crash GIF and was muted in <#{msg.channel.id}>", embed=embed)
+                    if (len(msg.attachments) > 0):
+                        for attachment in msg.attachments:
+                            embed.add_field(name="Attachment", value=attachment.proxy_url, inline=False)
+
+                    await invest_channel.send(content=f"<:CliptokDenied:843582722940993556> <@{msg.author.id}> sent a crash GIF and was muted in <#{msg.channel.id}>", embed=embed)
                     was_bad = True
                     break
     log.debug("Done analyzing.")
